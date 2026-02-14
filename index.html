@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0a1a0a">
+  <title>For Lois</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>L</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ============ INTRO ============ -->
+  <div id="intro">
+    <div class="intro-bg" id="intro-p"></div>
+    <div class="intro-inner">
+      <div class="intro-ascii">&lt;3</div>
+      <h1>// For Lois</h1>
+      <p class="sub">Happy Valentine's Day</p>
+      <p class="msg">For Natey Negusti Happy Valentines Day!</p>
+      <div class="intro-score">[ score: <span class="score-val">0</span> ]</div>
+      <button id="enter-btn">&gt; Open Gift _</button>
+    </div>
+  </div>
+
+  <!-- ============ SLOT MACHINE ============ -->
+  <div id="slot" class="hidden">
+    <h2 class="machine-title">[ GAMBLINGGG!!! ]</h2>
+    <div class="machine">
+      <div class="reels">
+        <div class="reel" id="reel1"><div class="reel-strip" id="strip1"></div></div>
+        <div class="reel" id="reel2"><div class="reel-strip" id="strip2"></div></div>
+        <div class="reel" id="reel3"><div class="reel-strip" id="strip3"></div></div>
+      </div>
+
+      <div id="result" class="hidden"><p id="result-text"></p></div>
+      <button id="spin-btn">&gt; SPIN TO WIN!!!</button>
+      <p class="hint">// match 3 to win</p>
+    </div>
+    <p class="machine-score">POINTS: <span class="score-val">0</span></p>
+  </div>
+
+  <!-- ============ PARTICLES ============ -->
+  <div id="particles"></div>
+
+  <script src="main.js"></script>
+</body>
+</html>

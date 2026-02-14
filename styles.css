@@ -1,0 +1,365 @@
+/* ============================================================
+   FOR LOIS - Love Slot Machine
+   Pure JS + CSS  |  Terminal / ASCII aesthetic  |  Green theme
+   ============================================================ */
+
+:root {
+  --reel-h: 100px;
+  --green:      #43a047;
+  --green-lt:   #66bb6a;
+  --green-dk:   #1b5e20;
+  --green-pale: #c8e6c9;
+  --pink:       #e91e63;
+  --pink-lt:    #f8bbd0;
+  --gold:       #ffd740;
+  --bg:         #0a1a0a;
+  --bg-reel:    #0d1f0d;
+  --mono: 'Courier New', Courier, monospace;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  min-height: 100vh;
+  font-family: var(--mono);
+  background: var(--bg);
+  color: var(--green-lt);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ==========================================================
+   INTRO
+   ========================================================== */
+#intro {
+  position: fixed; inset: 0;
+  background: linear-gradient(135deg, #0a1a0a 0%, #1b5e20 40%, #2e7d32 70%, #449c53 100%);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+  transition: opacity .8s ease, transform .8s ease;
+  overflow: hidden;
+}
+#intro.fade-out { opacity: 0; transform: scale(1.1); pointer-events: none; }
+
+.intro-bg { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
+.intro-inner { text-align: center; z-index: 2; padding: 20px; }
+
+.intro-ascii {
+  font-size: 4rem; font-weight: 900;
+  color: var(--green-lt);
+  text-shadow: 0 0 30px rgba(102,187,106,.7);
+  margin-bottom: 10px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.intro-inner h1 {
+  font-family: var(--mono);
+  font-size: 2.6rem; font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(102,187,106,.6);
+  margin-bottom: 4px; letter-spacing: 2px;
+}
+
+.sub { font-size: 1.05rem; color: var(--pink-lt); margin-bottom: 12px; }
+.msg { font-size: .85rem; color: var(--green-pale); font-style: italic; margin: 0 auto 16px; max-width: 300px; line-height: 1.7; }
+.intro-score { font-size: 1rem; color: var(--gold); font-weight: 700; margin-bottom: 24px; text-shadow: 0 1px 8px rgba(255,215,0,.5); }
+
+#enter-btn {
+  background: var(--green-dk); color: #fff;
+  border: 2px solid var(--green-lt);
+  padding: 14px 48px; font-size: 1.1rem;
+  font-family: var(--mono); font-weight: 700;
+  border-radius: 6px; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(27,94,32,.5);
+  transition: transform .2s;
+  animation: pulse 2.5s ease-in-out infinite;
+  letter-spacing: 2px;
+}
+#enter-btn:active { transform: scale(1.06); }
+
+/* Floating background chars */
+.p-float {
+  position: absolute; bottom: -40px; opacity: .5;
+  font-family: var(--mono); font-weight: 700;
+  animation: float-up linear forwards;
+}
+@keyframes float-up {
+  0%   { transform: translateY(0) rotate(0) scale(1); opacity: .5; }
+  100% { transform: translateY(-115vh) rotate(360deg) scale(.4); opacity: 0; }
+}
+
+/* ==========================================================
+   SLOT MACHINE — CENTERED CARD LAYOUT
+   ========================================================== */
+#slot {
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  min-height: 100vh; padding: 24px 12px;
+}
+#slot.hidden { display: none; }
+#slot.fade-in { animation: fadeIn .6s ease both; }
+
+.machine {
+  background: linear-gradient(180deg, #0d1f0d, #0a1a0a);
+  border: 2px solid rgba(67,160,71,.4);
+  border-radius: 16px;
+  padding: 28px 20px 24px;
+  width: 100%; max-width: 420px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(27,94,32,.3), inset 0 0 60px rgba(0,0,0,.3);
+}
+
+.machine-title {
+  font-size: 1.5rem; font-weight: 900;
+  color: var(--green-lt); letter-spacing: 3px;
+  text-shadow: 0 0 14px rgba(102,187,106,.5);
+  margin-bottom: 24px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+}
+
+.machine-score {
+  font-size: 1.8rem; color: var(--gold); font-weight: 900;
+  margin-top: 32px;
+  text-shadow: 0 0 12px rgba(255,215,0,.6);
+  letter-spacing: 2px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+}
+
+/* --- Reels --- */
+.reels {
+  display: flex; justify-content: center;
+  gap: 8px; margin-bottom: 20px;
+}
+
+.reel {
+  width: 110px; height: var(--reel-h);
+  overflow: hidden;
+  background: var(--bg-reel);
+  border-radius: 8px;
+  border: 2px solid rgba(67,160,71,.35);
+  position: relative;
+  transition: border-color .4s, box-shadow .4s;
+}
+
+/* Glow states for matches */
+.reel.matched {
+  border-color: var(--green-lt);
+  box-shadow: 0 0 18px rgba(102,187,106,.5), inset 0 0 12px rgba(102,187,106,.15);
+  animation: reelGlow 1s ease-in-out infinite;
+}
+.reel.matched-gold {
+  border-color: var(--gold);
+  box-shadow: 0 0 24px rgba(255,215,64,.5), inset 0 0 16px rgba(255,215,64,.15);
+  animation: reelGlow .7s ease-in-out infinite;
+}
+
+@keyframes reelGlow {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.15); }
+}
+
+/* CRT Scanlines */
+.reel::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.08) 2px, rgba(0,0,0,.08) 4px);
+  z-index: 3; pointer-events: none;
+}
+
+/* Top/bottom edge fade */
+.reel::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(10,26,10,.7) 0%, transparent 20%, transparent 80%, rgba(10,26,10,.7) 100%);
+  z-index: 2; pointer-events: none;
+}
+
+.reel-strip { position: relative; will-change: transform; }
+
+.reel-item {
+  width: 100%; height: var(--reel-h);
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  gap: 3px; user-select: none; padding: 4px;
+}
+
+.reel-sym {
+  font-family: var(--mono);
+  font-weight: 900; font-size: clamp(0.1rem, 4vw, 1.9rem);
+  line-height: 1; text-align: center;
+  white-space: nowrap;
+  text-shadow: 0 0 10px currentColor;
+}
+
+.reel-lbl {
+  font-family: var(--mono);
+  font-size: 0.9rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  opacity: .5;
+}
+
+/* --- Spin Button --- */
+#spin-btn {
+  background: var(--green-dk); color: var(--green-lt);
+  border: 2px solid var(--green);
+  padding: 14px 60px; font-size: 1.2rem;
+  font-family: var(--mono); font-weight: 900;
+  letter-spacing: 1px; border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(27,94,32,.4);
+  transition: transform .2s, background .2s;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+#spin-btn:active:not(:disabled) {
+  background: var(--green); color: #fff;
+  transform: scale(.94);
+}
+#spin-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Button press flash animation */
+#spin-btn.btn-press {
+  animation: btnPress .4s ease-out;
+}
+@keyframes btnPress {
+  0%   { transform: scale(1); box-shadow: 0 4px 18px rgba(27,94,32,.4); }
+  15%  { transform: scale(.88); box-shadow: 0 2px 8px rgba(27,94,32,.2); }
+  40%  { transform: scale(1.06); box-shadow: 0 4px 30px rgba(102,187,106,.7); background: var(--green); color: #fff; }
+  100% { transform: scale(1); box-shadow: 0 4px 18px rgba(27,94,32,.4); }
+}
+
+/* Button burst particles */
+.p-btn-burst {
+  position: absolute;
+  font-family: var(--mono); font-weight: 900;
+  pointer-events: none;
+  animation: btnBurst linear forwards;
+}
+@keyframes btnBurst {
+  0%   { transform: translate(0, 0) scale(1.2); opacity: 1; }
+  100% { transform: translate(var(--bx), var(--by)) scale(.3); opacity: 0; }
+}
+
+/* --- Result --- */
+#result {
+  padding: 14px 20px;
+  background: rgba(13,31,13,.95);
+  border: 2px solid var(--green);
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 14px;
+  animation: resultPop .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+#result.hidden { display: none; }
+
+#result-text {
+  color: var(--green-lt);
+  font-size: .95rem; font-weight: 600;
+  line-height: 1.7;
+}
+
+.win {
+  font-size: 1.2rem; font-weight: 900;
+  color: var(--green-lt);
+  text-shadow: 0 0 14px rgba(102,187,106,.8);
+  letter-spacing: 2px;
+}
+.mega {
+  font-size: 1.3rem; font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 0 18px rgba(255,215,64,.8);
+  letter-spacing: 3px;
+  animation: pulse .8s ease-in-out infinite;
+}
+.all-list {
+  margin-top: 6px; font-size: .7rem;
+  font-weight: 700; color: var(--green-pale);
+  line-height: 1.6;
+}
+
+.hint { color: #558b2f; font-size: 1.0rem; opacity: .6; }
+
+/* Score pop animation */
+.score-val {
+  display: inline-block;
+  transition: text-shadow .2s;
+}
+.score-val.pop { animation: scorePop .6s ease; }
+@keyframes scorePop {
+  0%   { transform: scale(1); color: var(--gold); text-shadow: 0 0 8px rgba(255,215,0,.4); }
+  35%  { transform: scale(1.9); color: #fff; text-shadow: 0 0 20px rgba(255,255,255,.8); }
+  60%  { transform: scale(1.1); color: var(--gold); }
+  100% { transform: scale(1); color: var(--gold); text-shadow: 0 0 8px rgba(255,215,0,.4); }
+}
+
+/* Inline +X score indicator */
+.score-plus {
+  font-family: var(--mono);
+  font-weight: 900;
+  color: #aed581;
+  text-shadow: 0 0 10px rgba(174,213,129,.7);
+}
+
+/* ==========================================================
+   PARTICLES
+   ========================================================== */
+#particles {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 9999; overflow: hidden;
+}
+.p-rise {
+  position: absolute; bottom: -30px;
+  font-family: var(--mono); font-weight: 700;
+  animation: rise linear forwards; pointer-events: none;
+}
+@keyframes rise {
+  0%   { transform: translateY(0)      translateX(0)     scale(1);    opacity: 1; }
+  25%  { transform: translateY(-25vh)  translateX(20px)  scale(1.3);  opacity: .9; }
+  50%  { transform: translateY(-50vh)  translateX(-15px) scale(1);    opacity: .7; }
+  75%  { transform: translateY(-75vh)  translateX(10px)  scale(.8);   opacity: .4; }
+  100% { transform: translateY(-110vh) translateX(-5px)  scale(.6);   opacity: 0; }
+}
+
+.p-fall {
+  position: absolute; top: 0;
+  font-family: var(--mono); font-weight: 700;
+  animation: fall linear forwards; pointer-events: none;
+}
+@keyframes fall {
+  0%   { transform: translateY(-30px)  translateX(0)     scale(1);    opacity: 0; }
+  10%  { opacity: 1; }
+  25%  { transform: translateY(25vh)   translateX(-20px) scale(1.3);  opacity: .9; }
+  50%  { transform: translateY(50vh)   translateX(15px)  scale(1);    opacity: .7; }
+  75%  { transform: translateY(75vh)   translateX(-10px) scale(.8);   opacity: .4; }
+  100% { transform: translateY(110vh)  translateX(5px)   scale(.6);   opacity: 0; }
+}
+
+/* ==========================================================
+   KEYFRAMES
+   ========================================================== */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.07); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes resultPop {
+  from { opacity: 0; transform: scale(.85) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ==========================================================
+   RESPONSIVE
+   ========================================================== */
+@media (max-width: 380px) {
+  .reel { width: 90px; }
+  .reel-sym { font-size: 1.1rem; }
+  #spin-btn { padding: 12px 40px; font-size: 1rem; }
+  .machine { padding: 20px 14px 18px; }
+}
